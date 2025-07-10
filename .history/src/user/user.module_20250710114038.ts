@@ -9,7 +9,7 @@ import { User, UserSchema } from './schema/user.schema';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [UserController],
-  providers: [UserService], // this tells nestjs to use the user service and allow it to be injected
+  providers: [UserService],
   exports: [UserService],
 })
 export class UserModule {}

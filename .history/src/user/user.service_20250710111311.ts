@@ -1,8 +1,8 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from 'src/user/schema/user.schema';
+import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
-import { SignupDto } from '../auth/dto/signup.dto';
+import { CreateUserDto } from '../auth/dto/signup.dto'; // or define your own in user/dto
 
 @Injectable()
 export class UserService {
@@ -10,7 +10,7 @@ export class UserService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async create(dto: SignupDto): Promise<User> {
+  async create(dto: CreateUserDto): Promise<User> {
     const user = new this.userModel(dto);
     return user.save();
   }

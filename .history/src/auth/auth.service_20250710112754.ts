@@ -17,11 +17,7 @@ export class AuthService {
       throw new Error('Email already in use');
     }
     const hash = await argon.hash(dto.password);
-    try {
-      const user = await this.userService.create({ ...dto, password: hash });
-      return user;
-    } catch (error) {
-      throw error;
-    }
+
+    return this.userService.create(dto);
   }
 }

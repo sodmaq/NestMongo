@@ -19,6 +19,7 @@ export class AuthService {
     const hash = await argon.hash(dto.password);
     try {
       const user = await this.userService.create({ ...dto, password: hash });
+      await this.databaseService.cleanDb();
       return user;
     } catch (error) {
       throw error;

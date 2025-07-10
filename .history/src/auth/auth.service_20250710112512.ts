@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { Sign } from 'crypto';
 import { DatabaseService } from 'src/database/database.service';
 import { UserService } from 'src/user/user.service';
 import { SignupDto } from './dto';
-import * as argon from 'argon2';
 
 @Injectable()
 export class AuthService {
@@ -16,12 +16,8 @@ export class AuthService {
     if (existing) {
       throw new Error('Email already in use');
     }
-    const hash = await argon.hash(dto.password);
-    try {
-      const user = await this.userService.create({ ...dto, password: hash });
-      return user;
-    } catch (error) {
-      throw error;
-    }
+    const hashed = await bcrypt.hash(dto.password, 10);
+
+    return this.userService.create(dto);
   }
 }

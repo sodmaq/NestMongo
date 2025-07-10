@@ -2,14 +2,14 @@ import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './schema/user.schema';
+import { User } from './schema/user.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), // ✅ register model
   ],
   controllers: [UserController],
-  providers: [UserService], // this tells nestjs to use the user service and allow it to be injected
+  providers: [UserService],
   exports: [UserService],
 })
 export class UserModule {}
