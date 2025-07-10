@@ -37,7 +37,7 @@ export class AuthService {
       }
       const valid = await argon.verify(user.password, dto.password);
       if (!valid) {
-        throw new ForbiddenException('Invalid password');
+        throw new Error('Invalid password');
       }
       return user;
     } catch (error) {

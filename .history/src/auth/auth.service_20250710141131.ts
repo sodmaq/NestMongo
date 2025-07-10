@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { UserService } from 'src/user/user.service';
 import { LoginDto, SignupDto } from './dto';
@@ -30,18 +26,14 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    try {
-      const user = await this.userService.findByEmail(dto.email);
-      if (!user) {
-        throw new ForbiddenException('User not found');
-      }
-      const valid = await argon.verify(user.password, dto.password);
-      if (!valid) {
-        throw new ForbiddenException('Invalid password');
-      }
-      return user;
-    } catch (error) {
-      throw error;
+    const user = await this.userService.findByEmail(dto.email);
+    if (!user) {
+      throw new Error('User not found');
     }
+    const isPasswordValid = await argon.verify(user.password, dto.password);
+    if (!isPasswordValid) {
+      throw new Error('Invalid password');
+    }
+    return user;
   }
 }
