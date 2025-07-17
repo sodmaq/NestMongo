@@ -8,13 +8,12 @@ import { DatabaseService } from 'src/database/database.service';
 import { UserService } from 'src/user/user.service';
 import { LoginDto, SignupDto } from './dto';
 import * as argon from 'argon2';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly databaseService: DatabaseService,
     private readonly userService: UserService,
-    private readonly jwt: JwtService,
   ) {}
 
   async signUp(dto: SignupDto) {
@@ -35,9 +34,7 @@ export class AuthService {
     const valid = await argon.verify(user.password, dto.password);
     if (!valid) throw new ForbiddenException('Invalid password');
 
-    const tokens = await this.signTokens(user.id, user.email);
-
-    return { ...tokens };
+    return user;
   }
 
   async signTokens(
@@ -45,17 +42,9 @@ export class AuthService {
     email: string,
   ): Promise<{ accessToken: string }> {
     const payload = { sub: userId, email };
-    const accessToken = await this.jwt.signAsync(payload, {
+    const accessToken = await this.databaseService.sign(payload, {
       expiresIn: '15m',
-      secret: process.env.JWT_SECRET,
     });
     return { accessToken };
-  }
-
-  async refreshTokens(userId: string): Promise<{ accessToken: string }> {
-    const user = await this.userService.findById(userId);
-    if (!user) throw new NotFoundException('User not found');
-    const tokens = await this.signTokens(user.id, user.email);
-    return tokens;
   }
 }

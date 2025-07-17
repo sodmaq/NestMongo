@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly databaseService: DatabaseService,
     private readonly userService: UserService,
     private readonly jwt: JwtService,
   ) {}
@@ -37,7 +38,7 @@ export class AuthService {
 
     const tokens = await this.signTokens(user.id, user.email);
 
-    return { ...tokens };
+    return { ...tokens, user };
   }
 
   async signTokens(
@@ -50,12 +51,5 @@ export class AuthService {
       secret: process.env.JWT_SECRET,
     });
     return { accessToken };
-  }
-
-  async refreshTokens(userId: string): Promise<{ accessToken: string }> {
-    const user = await this.userService.findById(userId);
-    if (!user) throw new NotFoundException('User not found');
-    const tokens = await this.signTokens(user.id, user.email);
-    return tokens;
   }
 }
