@@ -18,8 +18,6 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @UseGuards(JwtGuard)
-  @Post('refresh')
   async refreshToken(@Body() dto: { refreshToken: string }) {
     return this.authService.handleRefreshToken(dto.refreshToken);
   }
