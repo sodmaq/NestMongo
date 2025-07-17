@@ -11,7 +11,7 @@ export class UserService {
   ) {}
 
   async create(dto: SignupDto): Promise<User> {
-    const user = new this.userModel(dto);
+    const user = new this.userModel(dt0);
     return user.save();
   }
 

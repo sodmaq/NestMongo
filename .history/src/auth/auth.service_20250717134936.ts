@@ -43,17 +43,17 @@ export class AuthService {
   async signTokens(
     userId: string,
     email: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<{ accessToken: string }> {
     const payload = { sub: userId, email };
     const accessToken = await this.jwt.signAsync(payload, {
-      expiresIn: process.env.JWT_EXPIRATION_TIME,
+      expiresIn: '15m',
       secret: process.env.JWT_SECRET,
     });
 
     const refreshToken = await this.jwt.signAsync(payload, {
-      expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME,
-      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: '7d',
+      secret: process.env.JWT_SECRET,
     });
-    return { accessToken, refreshToken };
+    return { accessToken };
   }
 }

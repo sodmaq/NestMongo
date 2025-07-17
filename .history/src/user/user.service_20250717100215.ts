@@ -22,8 +22,4 @@ export class UserService {
   async findById(id: string): Promise<UserDocument | null> {
     return this.userModel.findById(id).exec();
   }
-
-  async getAllUsers(): Promise<User[]> {
-    return this.userModel.find().exec();
-  }
 }
