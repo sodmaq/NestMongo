@@ -22,9 +22,12 @@ export class AuthService {
       throw new ConflictException('Email already in use');
     }
     const hash = await argon.hash(dto.password);
-
-    const user = await this.userService.create({ ...dto, password: hash });
-    return user;
+    
+      const user = await this.userService.create({ ...dto, password: hash });
+      return user;
+   
+      throw error;
+    }
   }
 
   async login(dto: LoginDto) {

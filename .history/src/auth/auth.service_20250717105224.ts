@@ -22,18 +22,27 @@ export class AuthService {
       throw new ConflictException('Email already in use');
     }
     const hash = await argon.hash(dto.password);
-
-    const user = await this.userService.create({ ...dto, password: hash });
-    return user;
+    try {
+      const user = await this.userService.create({ ...dto, password: hash });
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async login(dto: LoginDto) {
-    const user = await this.userService.findByEmail(dto.email);
-    if (!user) throw new ForbiddenException('User not found');
-
-    const valid = await argon.verify(user.password, dto.password);
-    if (!valid) throw new ForbiddenException('Invalid password');
-
-    return user;
+    try {
+      const user = await this.userService.findByEmail(dto.email);
+      if (!user) {
+        throw new ForbiddenException('User not found');
+      }
+      const valid = await argon.verify(user.password, dto.password);
+      if (!valid) {
+        throw new ForbiddenException('Invalid password');
+      }
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
 }
