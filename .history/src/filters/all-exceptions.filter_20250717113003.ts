@@ -6,7 +6,6 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { pinoLogger } from 'src/middlewares/logger/pino-logger';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -27,7 +26,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     // 🟡 Log the error
-    pinoLogger.error({
+    logger.error({
       method: request.method,
       url: request.url,
       statusCode: status,

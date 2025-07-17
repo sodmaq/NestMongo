@@ -1,4 +1,3 @@
-// src/common/filters/all-exceptions.filter.ts
 import {
   ExceptionFilter,
   Catch,
@@ -6,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { pinoLogger } from 'src/middlewares/logger/pino-logger';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -26,16 +24,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message = exception.message;
     }
 
-    // 🟡 Log the error
-    pinoLogger.error({
-      method: request.method,
-      url: request.url,
-      statusCode: status,
-      message,
-      stack: exception instanceof Error ? exception.stack : null,
-    });
-
-    // 🔵 Send the response
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
