@@ -23,6 +23,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException('User not found');
     }
 
+    // optionally remove password or other sensitive fields
+
     return user;
   }
 }

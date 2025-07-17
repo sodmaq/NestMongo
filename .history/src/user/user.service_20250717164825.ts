@@ -17,11 +17,12 @@ export class UserService {
 
   async findByEmail(
     email: string,
-    includePassword: boolean = false,
+    includePassword?: boolean = false,
   ): Promise<UserDocument | null> {
-    const query = this.userModel.findOne({ email });
-    if (includePassword) query.select('+password');
-    return query.exec();
+    const query = includePassword
+      ? { email }
+      : { email, password: { $exists: true } };
+    return this.userModel.findOne({ email }).exec();
   }
 
   async findById(id: string): Promise<UserDocument | null> {

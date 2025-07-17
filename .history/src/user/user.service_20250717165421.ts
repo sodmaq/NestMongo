@@ -17,7 +17,7 @@ export class UserService {
 
   async findByEmail(
     email: string,
-    includePassword: boolean = false,
+    includePassword?: boolean = false,
   ): Promise<UserDocument | null> {
     const query = this.userModel.findOne({ email });
     if (includePassword) query.select('+password');

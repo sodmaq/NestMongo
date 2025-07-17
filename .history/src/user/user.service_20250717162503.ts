@@ -15,13 +15,8 @@ export class UserService {
     return user.save();
   }
 
-  async findByEmail(
-    email: string,
-    includePassword: boolean = false,
-  ): Promise<UserDocument | null> {
-    const query = this.userModel.findOne({ email });
-    if (includePassword) query.select('+password');
-    return query.exec();
+  async findByEmail(email: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ email }).exec();
   }
 
   async findById(id: string): Promise<UserDocument | null> {
@@ -29,6 +24,6 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return this.userModel.find().exec();
+    return this.userModel.find().e.exec();
   }
 }
