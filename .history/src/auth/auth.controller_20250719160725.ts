@@ -1,7 +1,7 @@
 import { Body, Controller, Post, UseFilters, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtGuard } from './guards';
-import { LoginDto, RefreshTokenDto, SignupDto } from './dto';
+import { LoginDto, SignupDto } from './dto';
 import { AllExceptionsFilter } from 'src/filters/all-exceptions.filter';
 
 @Controller('auth')
@@ -19,7 +19,7 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refreshToken(@Body() dto: RefreshTokenDto) {
+  async refreshToken(@Body() dto: { refreshToken: string }) {
     return this.authService.handleRefreshToken(dto.refreshToken);
   }
 }
