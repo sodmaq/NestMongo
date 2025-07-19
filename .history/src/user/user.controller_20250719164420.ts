@@ -1,10 +1,9 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User, UserDocument } from './schema/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtGuard } from 'src/auth/guards';
-import { GetUser } from './decorator';
 
 @Controller('user')
 export class UserController {
@@ -19,9 +18,9 @@ export class UserController {
     return this.userService.getAllUsers();
   }
 
-  @Get('me')
+  @Get('getUserById/:id')
   @UseGuards(JwtGuard)
-  async getMe(@GetUser() user: UserDocument): Promise<User> {
-    return this.userService.getUserById(user.id);
+  async getUserById(id: string): Promise<User> {
+    return this.userService.getUserById(id);
   }
 }

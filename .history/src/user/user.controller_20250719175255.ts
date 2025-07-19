@@ -19,7 +19,13 @@ export class UserController {
     return this.userService.getAllUsers();
   }
 
-  @Get('me')
+  @Get(':id')
+  @UseGuards(JwtGuard)
+  async getUserById(@Param('id') id: string): Promise<User> {
+    return this.userService.getUserById(id);
+  }
+
+  @Get(':id')
   @UseGuards(JwtGuard)
   async getMe(@GetUser() user: UserDocument): Promise<User> {
     return this.userService.getUserById(user.id);

@@ -33,6 +33,6 @@ export class UserService {
   }
 
   async getUserById(id: string): Promise<User> {
-    return this.userModel.findById(id).exec();
+    return this.userModel.findById(id).exe();
   }
 }

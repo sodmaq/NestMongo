@@ -4,7 +4,6 @@ import { User, UserDocument } from './schema/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtGuard } from 'src/auth/guards';
-import { GetUser } from './decorator';
 
 @Controller('user')
 export class UserController {
@@ -19,9 +18,15 @@ export class UserController {
     return this.userService.getAllUsers();
   }
 
-  @Get('me')
+  @Get(':id')
   @UseGuards(JwtGuard)
-  async getMe(@GetUser() user: UserDocument): Promise<User> {
-    return this.userService.getUserById(user.id);
+  async getUserById(@Param('id') id: string): Promise<User> {
+    return this.userService.getUserById(id);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtGuard)
+  async getMe(@Param('id') id: string): Promise<User> {
+    return this.userService.getUserById(id);
   }
 }
