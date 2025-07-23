@@ -20,6 +20,6 @@ export class AuthController {
 
   @Post('refresh')
   async refreshToken(@Body() dto: RefreshTokenDto) {
-    return this.authService.handleRefreshToken(dto);
+    return this.authService.handleRefreshToken(dto.refreshToken);
   }
 }

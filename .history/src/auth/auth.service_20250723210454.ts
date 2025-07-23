@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { UserService } from 'src/user/user.service';
-import { LoginDto, RefreshTokenDto, SignupDto } from './dto';
+import { LoginDto, SignupDto } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { access } from 'fs';
@@ -58,8 +58,8 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async handleRefreshToken(dto: RefreshTokenDto) {
-    const payload = await this.jwt.verifyAsync(dto.refreshToken, {
+  async handleRefreshToken(refreshToken: string) {
+    const payload = await this.jwt.verifyAsync(refreshToken, {
       secret: process.env.JWT_REFRESH_SECRET,
     });
     if (!payload) throw new ForbiddenException('Invalid refresh token');

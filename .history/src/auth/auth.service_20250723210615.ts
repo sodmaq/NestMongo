@@ -59,7 +59,7 @@ export class AuthService {
   }
 
   async handleRefreshToken(dto: RefreshTokenDto) {
-    const payload = await this.jwt.verifyAsync(dto.refreshToken, {
+    const payload = await this.jwt.verifyAsync(refreshToken, {
       secret: process.env.JWT_REFRESH_SECRET,
     });
     if (!payload) throw new ForbiddenException('Invalid refresh token');
