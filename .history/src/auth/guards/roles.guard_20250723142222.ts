@@ -1,7 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from 'src/enums/roles.enum';
-import { pinoLogger } from 'src/middlewares/logger/pino-logger';
 import { ROLES_KEY } from 'src/user/decorator/roles.decorator';
 
 @Injectable()
@@ -20,7 +19,7 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      pinoLogger.error('RolesGuard: No user found on request');
+      console.warn('RolesGuard: No user found on request');
       return false;
     }
 

@@ -1,3 +1,4 @@
+// src/common/filters/all-exceptions.filter.ts
 import {
   ExceptionFilter,
   Catch,
@@ -15,31 +16,43 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
+    let errorMessage = 'Internal server error';
+    let errorDetails: string[] = [];
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
+
       const res = exception.getResponse();
-      message = typeof res === 'string' ? res : (res as any).message;
+      if (typeof res === 'string') {
+        errorMessage = res;
+      } else if (typeof res === 'object') {
+        errorMessage = (res as any).message || errorMessage;
+        if (Array.isArray((res as any).message)) {
+          errorDetails = (res as any).message;
+          errorMessage = 'Validation failed';
+        }
+      }
     } else if (exception instanceof Error) {
-      message = exception.message;
+      errorMessage = exception.message;
     }
 
-    // 🟡 Log the error
+    // 🟡 Log error
     pinoLogger.error({
       method: request.method,
       url: request.url,
       statusCode: status,
-      message,
+      message: errorMessage,
       stack: exception instanceof Error ? exception.stack : null,
     });
 
-    // 🔵 Send the response
+    // 🔵 Unified response
     response.status(status).json({
+      status: 'error',
       statusCode: status,
-      timestamp: new Date().toISOString(),
       path: request.url,
-      message,
+      timestamp: new Date().toISOString(),
+      message: errorMessage,
+      errors: errorDetails.length ? errorDetails : undefined,
     });
   }
 }

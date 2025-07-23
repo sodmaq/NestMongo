@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseFilters, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User, UserDocument } from './schema/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
@@ -8,7 +8,6 @@ import { GetUser } from './decorator';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Role } from 'src/enums/roles.enum';
 import { Roles } from './decorator/roles.decorator';
-import { AllExceptionsFilter } from 'src/filters/all-exceptions.filter';
 
 @Controller('user')
 @UseFilters(new AllExceptionsFilter())
