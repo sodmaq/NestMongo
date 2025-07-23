@@ -31,7 +31,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.userService.findByEmail(dto.email, true);
-    if (!user) throw new ForbiddenException('There is no user with this email');
+    if (!user) throw new ForbiddenException('User not found');
 
     const valid = await argon.verify(user.password, dto.password);
     if (!valid) throw new ForbiddenException('Invalid password');
