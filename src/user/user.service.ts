@@ -3,12 +3,15 @@ import { User, UserDocument } from 'src/user/schema/user.schema';
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { SignupDto } from 'src/auth/dto';
+import { BaseService } from 'src/base.service';
 
 @Injectable()
-export class UserService {
+export class UserService extends BaseService<UserDocument> {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-  ) {}
+  ) {
+    super(userModel);
+  }
 
   async create(dto: SignupDto): Promise<User> {
     const user = new this.userModel(dto);

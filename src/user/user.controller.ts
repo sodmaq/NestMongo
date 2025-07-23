@@ -1,4 +1,11 @@
-import { Controller, Get, Param, UseFilters, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  UseFilters,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { User, UserDocument } from './schema/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
@@ -23,6 +30,21 @@ export class UserController {
   @Roles(Role.ADMIN)
   async getAllUsers(): Promise<User[]> {
     return this.userService.getAllUsers();
+  }
+
+  @Get('getAllPaginatedUsers')
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async getAllPaginatedUsers(
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+  ): Promise<{
+    result: User[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
+    return this.userService.getAllPaginated({}, +page, +limit);
   }
 
   @Get('me')
