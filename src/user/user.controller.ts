@@ -5,6 +5,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtGuard } from 'src/auth/guards';
 import { GetUser } from './decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Role } from 'src/enums/roles.enum';
+import { Roles } from './decorator/roles.decorator';
 
 @Controller('user')
 export class UserController {
@@ -14,7 +17,8 @@ export class UserController {
   ) {}
 
   @Get('getAllUsers')
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   async getAllUsers(): Promise<User[]> {
     return this.userService.getAllUsers();
   }
