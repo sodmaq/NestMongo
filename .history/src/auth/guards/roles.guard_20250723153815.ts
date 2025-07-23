@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from 'src/enums/roles.enum';
+import { pinoLogger } from 'src/middlewares/logger/pino-logger';
 import { ROLES_KEY } from 'src/user/decorator/roles.decorator';
 
 @Injectable()
@@ -24,21 +25,10 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('Access denied: No user found on request');
+      throw new ForbiddenException('User not found');
+      return false;
     }
 
-    const hasRole = requiredRoles.some((role) =>
-      user.roles?.some(
-        (userRole) => userRole.toLowerCase() === role.toLowerCase(),
-      ),
-    );
-
-    if (!hasRole) {
-      throw new ForbiddenException(
-        'Access denied: you do not have access to this resource',
-      );
-    }
-
-    return true;
+    return requiredRoles.some((role) => user.roles?.includes(role));
   }
 }

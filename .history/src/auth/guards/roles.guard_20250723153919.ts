@@ -34,9 +34,7 @@ export class RolesGuard implements CanActivate {
     );
 
     if (!hasRole) {
-      throw new ForbiddenException(
-        'Access denied: you do not have access to this resource',
-      );
+      throw new ForbiddenException('Access denied: Insufficient role');
     }
 
     return true;
