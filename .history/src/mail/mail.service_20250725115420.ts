@@ -71,7 +71,7 @@ export class MailService {
     return this.sendEmail({
       to: email,
       subject: title,
-      template: 'notification',
+      template: 'notification', // Uses production/hbs/notification.hbs
       context: {
         title,
         message,

@@ -22,8 +22,8 @@ import { MailModule } from './mail/mail.module';
       useFactory: async (configService: ConfigService) => ({
         transport: {
           host: configService.get('MAIL_HOST', 'localhost'),
-          port: parseInt(configService.get('MAIL_PORT')),
-          secure: configService.get('MAIL_SECURE') === 'true',
+          port: parseInt(configService.get('MAIL_PORT')), // Convert to number
+          secure: configService.get('MAIL_SECURE') === 'true', // Convert to boolean
           auth: {
             user: configService.get('MAIL_USER'),
             pass: configService.get('MAIL_PASS'),

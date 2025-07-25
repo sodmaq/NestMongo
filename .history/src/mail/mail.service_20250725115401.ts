@@ -57,7 +57,7 @@ export class MailService {
     return this.sendEmail({
       to: email,
       subject: 'Password Reset Request',
-      template: 'password-reset',
+      template: 'password-reset', // Uses production/hbs/password-reset.hbs
       context: {
         userName: userName || 'User',
         resetUrl: `${this.configService.get('APP_URL')}/reset-password?token=${resetToken}`,
@@ -71,7 +71,7 @@ export class MailService {
     return this.sendEmail({
       to: email,
       subject: title,
-      template: 'notification',
+      template: 'notification', // Uses production/hbs/notification.hbs
       context: {
         title,
         message,
