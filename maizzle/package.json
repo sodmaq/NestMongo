@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "dev": "maizzle serve",
-    "build": "maizzle build production"
+    "build": "maizzle build production",
+    "build:dev": "maizzle build development"
   },
   "dependencies": {
     "@maizzle/framework": "latest",

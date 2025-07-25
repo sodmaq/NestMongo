@@ -33,7 +33,7 @@ import { MailModule } from './mail/mail.module';
           from: `"${configService.get('MAIL_FROM_NAME', 'No Reply')}" <${configService.get('MAIL_FROM_ADDRESS', 'noreply@example.com')}>`,
         },
         template: {
-          dir: join(__dirname, 'src/mail/templates'),
+          dir: join(process.cwd(), 'maizzle', 'development'),
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,

@@ -10,12 +10,15 @@ import { LoginDto, RefreshTokenDto, SignupDto } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { access } from 'fs';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwt: JwtService,
+    private readonly db: DatabaseService,
+    private readonly mailService: MailService,
   ) {}
 
   async signUp(dto: SignupDto) {
@@ -26,6 +29,10 @@ export class AuthService {
     const hash = await argon.hash(dto.password);
 
     const user = await this.userService.create({ ...dto, password: hash });
+
+    //send welcome email
+    await this.mailService.sendWelcomeEmail(user.email, user.fullName);
+
     return user;
   }
 
