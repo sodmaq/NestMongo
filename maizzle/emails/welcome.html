@@ -1,6 +1,6 @@
 ---
 bodyClass: bg-slate-50
-preheader: Transactional email template
+preheader: Verify your email to get started with NECTRE
 ---
 
 <x-main>
@@ -13,58 +13,100 @@ preheader: Transactional email template
           <table class="w-full">
             <tr>
               <td
-                class="py-6 px-9 sm:p-6 bg-white [border:1px_solid_theme(colors.slate.200)] rounded-lg"
+                class="py-8 px-10 sm:p-8 bg-white border border-slate-200 rounded-2xl shadow-sm"
               >
-                <a href="https://maizzle.com">
+                <!-- Logo -->
+                <a
+                  href="https://liozio-hub-five.vercel.app/"
+                  class="inline-block mb-8"
+                >
                   <img
-                    src="logo.png"
+                    src="https://res.cloudinary.com/dnldaz7oh/image/upload/v1735526223/logo_itr0eu.png"
                     src-production="images/logo.png"
                     width="70"
-                    alt="Maizzle"
+                    alt="NECTRE Logo"
+                    class="hover:opacity-90 transition-opacity duration-200"
                   />
                 </a>
 
-                <x-spacer height="24px" />
-
-                <h1 class="m-0 mb-6 text-2xl/8 text-slate-900 font-semibold">
-                  Hello there!
+                <!-- Heading with better typography -->
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">
+                  Hello {{ name }},
                 </h1>
 
-                <p class="m-0 mb-6 text-base/6 text-slate-600">
-                  welcome to our platform
+                <!-- Subtle accent line -->
+                <div class="w-12 h-1 bg-slate-900 rounded-full mb-6"></div>
+
+                <!-- Enhanced message -->
+                <p class="text-lg text-slate-700 leading-7 mb-6">
+                  Welcome to <strong class="text-slate-900">NECTRE</strong>!
+                  We're excited to have you on board. To get started, please
+                  verify your email address by clicking the button below.
                 </p>
 
-                <x-button
-                  href="https://maizzle.com"
-                  class="bg-slate-950 hover:bg-slate-800"
+                <!-- Enhanced Call to Action -->
+                <div class="mb-8">
+                  <x-button
+                    href="#"
+                    class="inline-block bg-slate-900 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                  >
+                    Verify Email Address
+                  </x-button>
+                </div>
+
+                <x-spacer height="8px" />
+
+                <!-- Security note with subtle styling -->
+                <div
+                  class="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-6"
                 >
-                  Verify email
-                </x-button>
+                  <p class="text-sm text-slate-600 leading-6 m-0">
+                    <strong class="text-slate-700"
+                      >🔒 Secure verification:</strong
+                    >
+                    This link will expire in 24 hours and can only be used once
+                    for your security.
+                  </p>
+                </div>
 
-                <x-spacer height="24px" />
+                <!-- Fallback Link with better presentation -->
+                <div class="border-t border-slate-100 pt-6 mb-6">
+                  <p class="text-sm text-slate-600 leading-6 mb-3">
+                    If you're having trouble clicking the "Verify Email Address"
+                    button, copy and paste the URL below into your browser:
+                  </p>
+                  <div
+                    class="bg-slate-50 border border-slate-200 rounded-md p-3"
+                  >
+                    <p class="break-all text-xs text-slate-500 m-0 font-mono">
+                      #
+                    </p>
+                  </div>
+                </div>
 
-                <p class="m-0 text-base/6 text-slate-600">
-                  Thanks,
-                  <br />
-                  <span class="font-semibold">Maizzle</span>
-                </p>
+                <x-divider class="my-6" />
 
-                <x-divider />
-
-                <p class="m-0 text-xs/5 text-slate-600 mso-break-all">
-                  If you're having trouble clicking the "Verify email" button,
-                  copy and paste the following URL into your web browser:
-                </p>
+                <!-- Enhanced Footer -->
+                <div class="text-left">
+                  <p class="text-base text-slate-700 leading-7 mb-1">Thanks,</p>
+                  <p class="text-base text-slate-900 font-semibold">
+                    The NECTRE Team
+                  </p>
+                </div>
               </td>
             </tr>
           </table>
 
+          <!-- Enhanced Legal Footer -->
           <table class="w-full">
             <tr>
-              <td class="py-6 px-9 sm:px-6">
-                <p class="m-0 text-xs text-slate-500">
-                  &copy; {{ new Date().getFullYear() }} Maizzle. All rights
+              <td class="py-6 px-10 sm:px-8 text-center">
+                <p class="text-xs text-slate-500 m-0 mb-3">
+                  &copy; {{ new Date().getFullYear() }} NECTRE. All rights
                   reserved.
+                </p>
+                <p class="text-xs text-slate-400 m-0">
+                  You're receiving this email because you signed up for NECTRE.
                 </p>
               </td>
             </tr>

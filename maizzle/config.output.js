@@ -4,10 +4,12 @@ export default {
   build: {
     content: ['emails/**/*.html'],
     output: {
-      path: 'development',
+      path: 'output',
       extension: 'hbs',
     },
-    summary: true,
-    spinner: 'circleHalves',
   },
+  inlineCSS: true,
+  removeUnusedCSS: true,
+  shorthandCSS: true,
+  prettify: true,
 };

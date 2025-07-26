@@ -15,7 +15,7 @@ export class MailService {
   async sendEmail(options: {
     to: string | string[];
     subject: string;
-    template: string; // template name (without .hbs extension)
+    template: string;
     context?: Record<string, any>;
   }) {
     try {

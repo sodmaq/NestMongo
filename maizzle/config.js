@@ -5,7 +5,11 @@ export default {
     content: ['emails/**/*.html'],
     output: {
       path: 'development',
-      extension: 'hbs',
+      extension: 'html',
     },
   },
+  inlineCSS: true,
+  removeUnusedCSS: true,
+  shorthandCSS: true,
+  prettify: true,
 };
