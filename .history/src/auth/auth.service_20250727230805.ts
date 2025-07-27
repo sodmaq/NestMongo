@@ -44,15 +44,7 @@ export class AuthService {
 
     await this.verificationToken(user);
 
-    return {
-      message: 'Verification email sent',
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        isVerified: user.isVerified,
-      },
-    };
+    return user;
   }
 
   async verifyEmail(dto: VerifyEmailDto) {

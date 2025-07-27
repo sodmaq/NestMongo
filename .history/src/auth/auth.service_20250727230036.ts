@@ -42,17 +42,25 @@ export class AuthService {
       verificationSentAt: new Date(),
     })) as UserDocument;
 
-    await this.verificationToken(user);
+    //create verification token
+    // const verificationToken = await this.jwt.signAsync(
+    //   { sub: user.id },
+    //   {
+    //     secret: process.env.JWT_VERIFICATION_SECRET,
+    //     expiresIn: process.env.JWT_VERIFICATION_EXPIRATION_TIME,
+    //   },
+    // );
 
-    return {
-      message: 'Verification email sent',
-      user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        isVerified: user.isVerified,
-      },
-    };
+    // const verificationLink = `${process.env.CLIENT_URL}/auth/verify/${verificationToken}`;
+
+    // //send welcome email
+    // await this.mailService.sendWelcomeEmail(
+    //   user.email,
+    //   user.fullName,
+    //   verificationLink,
+    // );
+
+    return user;
   }
 
   async verifyEmail(dto: VerifyEmailDto) {
@@ -99,9 +107,25 @@ export class AuthService {
       throw new ConflictException('User already verified');
     }
 
-    await this.verificationToken(user);
+    const verificationToken = await this.jwt.signAsync(
+      { sub: user.id },
+      {
+        secret: process.env.JWT_VERIFICATION_SECRET,
+        expiresIn: process.env.JWT_VERIFICATION_EXPIRATION_TIME,
+      },
+    );
 
-    return { message: 'Verification email sent' };
+    const verificationLink = `${process.env.CLIENT_URL}/auth/verify/${verificationToken}`;
+
+    await this.mailService.sendWelcomeEmail(
+      user.email,
+      user.fullName,
+      verificationLink,
+    );
+
+    return {
+      message: 'Verification email sent successfully, check your inbox',
+    };
   }
 
   async login(dto: LoginDto) {
@@ -170,6 +194,9 @@ export class AuthService {
       user.fullName,
       verificationLink,
     );
-    return { message: 'Verification email sent' };
+
+    return {
+      message: 'Verification email sent successfully, check your inbox',
+    };
   }
 }
