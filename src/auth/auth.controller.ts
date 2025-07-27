@@ -9,7 +9,13 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtGuard } from './guards';
-import { LoginDto, RefreshTokenDto, SignupDto } from './dto';
+import {
+  LoginDto,
+  RefreshTokenDto,
+  resendVerificationEmailDto,
+  SignupDto,
+  VerifyEmailDto,
+} from './dto';
 import { AllExceptionsFilter } from 'src/filters/all-exceptions.filter';
 
 @Controller('auth')
@@ -22,8 +28,13 @@ export class AuthController {
   }
 
   @Get('verify/:token')
-  async verifyEmail(@Param('token') token: string) {
-    return this.authService.verifyEmail(token);
+  async verifyEmail(@Param() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto);
+  }
+
+  @Post('resend')
+  async resendVerificationEmail(@Body() dto: resendVerificationEmailDto) {
+    return this.authService.resendVerificationEmail(dto);
   }
 
   @Post('login')

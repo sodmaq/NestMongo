@@ -3,10 +3,17 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { UserService } from 'src/user/user.service';
-import { LoginDto, RefreshTokenDto, SignupDto } from './dto';
+import {
+  LoginDto,
+  RefreshTokenDto,
+  resendVerificationEmailDto,
+  SignupDto,
+  VerifyEmailDto,
+} from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { access } from 'fs';
@@ -32,6 +39,7 @@ export class AuthService {
     const user = (await this.userService.create({
       ...dto,
       password: hash,
+      verificationSentAt: new Date(),
     })) as UserDocument;
 
     console.log('this is signup user', user);
@@ -46,7 +54,7 @@ export class AuthService {
     );
     console.log('this is verification token', verificationToken);
 
-    const verificationLink = `${process.env.CLIENT_URL}/verify/${verificationToken}`;
+    const verificationLink = `${process.env.CLIENT_URL}/auth/verify/${verificationToken}`;
 
     //send welcome email
     await this.mailService.sendWelcomeEmail(
@@ -58,15 +66,70 @@ export class AuthService {
     return user;
   }
 
-  async verifyEmail(token: string) {
-    const payload = await this.jwt.verifyAsync(token, {
-      secret: process.env.JWT_VERIFICATION_SECRET,
-    });
+  async verifyEmail(dto: VerifyEmailDto) {
+    let payload: { sub: string };
+
+    try {
+      payload = await this.jwt.verifyAsync(dto.token, {
+        secret: process.env.JWT_VERIFICATION_SECRET,
+      });
+    } catch (err) {
+      throw new UnauthorizedException('Invalid or expired verification token');
+    }
+
     const user = await this.userService.findById(payload.sub);
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.isVerified) {
+      throw new ConflictException('User already verified');
+    }
+
     user.isVerified = true;
     await user.save();
-    return user;
+
+    return {
+      message: 'Email successfully verified',
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        isVerified: user.isVerified,
+      },
+    };
+  }
+
+  async resendVerificationEmail(dto: resendVerificationEmailDto) {
+    const user = await this.userService.findByEmail(dto.email);
+    console.log('this is user', user);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.isVerified) {
+      throw new ConflictException('User already verified');
+    }
+
+    const verificationToken = await this.jwt.signAsync(
+      { sub: user.id },
+      {
+        secret: process.env.JWT_VERIFICATION_SECRET,
+        expiresIn: process.env.JWT_VERIFICATION_EXPIRATION_TIME,
+      },
+    );
+
+    const verificationLink = `${process.env.CLIENT_URL}/auth/verify/${verificationToken}`;
+
+    await this.mailService.sendWelcomeEmail(
+      user.email,
+      user.fullName,
+      verificationLink,
+    );
+
+    return {
+      message: 'Verification email sent successfully, check your inbox',
+    };
   }
 
   async login(dto: LoginDto) {
@@ -78,7 +141,7 @@ export class AuthService {
 
     if (!user.isVerified)
       throw new ForbiddenException(
-        'Please verify your email before logging in',
+        'Please verify your email to login. Check your inbox.',
       );
 
     const tokens = await this.signTokens(user.id, user.email);

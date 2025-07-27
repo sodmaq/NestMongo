@@ -20,9 +20,6 @@ export class User {
 
   @Prop({ default: false })
   isVerified: boolean;
-
-  @Prop({ type: Date })
-  verificationSentAt: { type: Date };
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

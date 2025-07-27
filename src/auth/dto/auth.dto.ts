@@ -22,3 +22,15 @@ export class RefreshTokenDto {
   @IsNotEmpty()
   refreshToken: string;
 }
+
+export class VerifyEmailDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+}
+
+export class resendVerificationEmailDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
