@@ -47,7 +47,7 @@ preheader: Verify your email to get started with NECTRE
                 <!-- Enhanced Call to Action -->
                 <div class="mb-8">
                   <x-button
-                    href="#"
+                    href="{{verificationLink}}"
                     class="inline-block bg-slate-900 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
                   >
                     Verify Email Address
@@ -64,7 +64,7 @@ preheader: Verify your email to get started with NECTRE
                     <strong class="text-slate-700"
                       >🔒 Secure verification:</strong
                     >
-                    This link will expire in 24 hours and can only be used once
+                    This link will expire in 5 minutes and can only be used once
                     for your security.
                   </p>
                 </div>
@@ -79,7 +79,7 @@ preheader: Verify your email to get started with NECTRE
                     class="bg-slate-50 border border-slate-200 rounded-md p-3"
                   >
                     <p class="break-all text-xs text-slate-500 m-0 font-mono">
-                      #
+                      {{verificationLink}}
                     </p>
                   </div>
                 </div>

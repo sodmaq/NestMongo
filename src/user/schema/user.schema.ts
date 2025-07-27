@@ -17,6 +17,12 @@ export class User {
 
   @Prop({ type: [String], enum: Role, default: [Role.USER] })
   roles: Role[];
+
+  @Prop({ default: false })
+  isVerified: boolean;
+
+  @Prop({ type: Date })
+  verificationSentAt: { type: Date };
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

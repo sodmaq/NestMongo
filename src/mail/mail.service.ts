@@ -35,7 +35,11 @@ export class MailService {
   }
 
   // Convenience methods
-  async sendWelcomeEmail(email: string, name: string) {
+  async sendWelcomeEmail(
+    email: string,
+    name: string,
+    verificationLink: string,
+  ) {
     return this.sendEmail({
       to: email,
       subject: 'Welcome to Our Platform!',
@@ -45,6 +49,7 @@ export class MailService {
         appName: this.configService.get('MAIL_FROM_NAME'),
         loginUrl: `${this.configService.get('APP_URL', 'http://localhost:3000')}/login`,
         year: new Date().getFullYear(),
+        verificationLink,
       },
     });
   }

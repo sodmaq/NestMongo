@@ -11,6 +11,7 @@ import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { access } from 'fs';
 import { MailService } from 'src/mail/mail.service';
+import { UserDocument } from 'src/user/schema/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -28,10 +29,31 @@ export class AuthService {
     }
     const hash = await argon.hash(dto.password);
 
-    const user = await this.userService.create({ ...dto, password: hash });
+    const user = (await this.userService.create({
+      ...dto,
+      password: hash,
+    })) as UserDocument;
+
+    console.log('this is signup user', user);
+
+    //create verification token
+    const verificationToken = await this.jwt.signAsync(
+      { sub: user.id },
+      {
+        secret: process.env.JWT_VERIFICATION_SECRET,
+        expiresIn: process.env.JWT_VERIFICATION_EXPIRATION_TIME,
+      },
+    );
+    console.log('this is verification token', verificationToken);
+
+    const verificationLink = `${process.env.CLIENT_URL}/verify/${verificationToken}`;
 
     //send welcome email
-    await this.mailService.sendWelcomeEmail(user.email, user.fullName);
+    await this.mailService.sendWelcomeEmail(
+      user.email,
+      user.fullName,
+      verificationLink,
+    );
 
     return user;
   }
@@ -42,6 +64,11 @@ export class AuthService {
 
     const valid = await argon.verify(user.password, dto.password);
     if (!valid) throw new ForbiddenException('Invalid password');
+
+    if (!user.isVerified)
+      throw new ForbiddenException(
+        'Please verify your email before logging in',
+      );
 
     const tokens = await this.signTokens(user.id, user.email);
 
