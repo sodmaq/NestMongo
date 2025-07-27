@@ -32,7 +32,6 @@ export class AuthService {
     const user = (await this.userService.create({
       ...dto,
       password: hash,
-      verificationSentAt: new Date(),
     })) as UserDocument;
 
     console.log('this is signup user', user);
@@ -63,8 +62,6 @@ export class AuthService {
     const payload = await this.jwt.verifyAsync(token, {
       secret: process.env.JWT_VERIFICATION_SECRET,
     });
-
-    console.log('this is payload', payload);
     const user = await this.userService.findById(payload.sub);
     if (!user) throw new NotFoundException('User not found');
     user.isVerified = true;

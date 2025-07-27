@@ -1,4 +1,12 @@
-import { Body, Controller, Post, UseFilters, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseFilters,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtGuard } from './guards';
 import { LoginDto, RefreshTokenDto, SignupDto } from './dto';
@@ -11,6 +19,11 @@ export class AuthController {
   @Post('signup')
   async signUp(@Body() dto: SignupDto) {
     return this.authService.signUp(dto);
+  }
+
+  @Get('verify/:token')
+  async verifyEmail(@Param('token') token: string) {
+    return this.authService.verifyEmail(token);
   }
 
   @Post('login')

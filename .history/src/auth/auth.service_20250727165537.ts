@@ -32,6 +32,7 @@ export class AuthService {
     const user = (await this.userService.create({
       ...dto,
       password: hash,
+      isVerified: false,
       verificationSentAt: new Date(),
     })) as UserDocument;
 

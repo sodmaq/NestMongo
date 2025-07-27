@@ -13,8 +13,6 @@ export class SignupDto extends LoginDto {
   @IsString()
   @IsNotEmpty()
   fullName: string;
-
-  verificationSentAt: Date;
 }
 
 export class RefreshTokenDto {
