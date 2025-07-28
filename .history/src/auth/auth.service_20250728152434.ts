@@ -1,9 +1,7 @@
 import {
-  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -14,17 +12,15 @@ import {
   LoginDto,
   RefreshTokenDto,
   resendVerificationEmailDto,
-  ResetPasswordDto,
   SignupDto,
   TokenDto,
-  VerifyOtpDto,
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { MailService } from 'src/mail/mail.service';
 import { UserDocument } from 'src/user/schema/user.schema';
 import { RedisService } from 'src/redis/redis.service';
-import * as bcrypt from 'bcrypt';
+import { pinoLogger } from 'src/middlewares/logger/pino-logger';
 
 @Injectable()
 export class AuthService {
@@ -33,25 +29,8 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly db: DatabaseService,
     private readonly mailService: MailService,
-    private readonly redis: RedisService,
+    private readonly redisService: RedisService,
   ) {}
-
-  private generateOtp(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  }
-
-  // Hash OTP
-  private async hashOtp(otp: string): Promise<string> {
-    return bcrypt.hash(otp, 10);
-  }
-
-  // Verify OTP
-  private async verifyOtp(
-    plainOtp: string,
-    hashedOtp: string,
-  ): Promise<boolean> {
-    return bcrypt.compare(plainOtp, hashedOtp);
-  }
 
   async signUp(dto: SignupDto) {
     const existing = await this.userService.findByEmail(dto.email);
@@ -195,133 +174,166 @@ export class AuthService {
     return { message: 'Verification email sent' };
   }
 
-  async forgotPassword(dto: EmailDto) {
-    try {
-      // Check rate limit
-      const rateLimitKey = `rate:${dto.email}`;
-      const rateLimitExists = await this.redis.exists(rateLimitKey);
-
-      if (rateLimitExists) {
-        const remaining = await this.redis.ttl(rateLimitKey);
-        throw new BadRequestException(
-          `Wait ${remaining} seconds before requesting again`,
-        );
-      }
-
-      // Generate OTP
-      const otp = this.generateOtp();
-      const hashedOtp = await this.hashOtp(otp);
-
-      // Store in Redis
-      const otpKey = `otp:${dto.email}`;
-      const otpData = JSON.stringify({
-        hashedOtp,
-        attempts: 0,
-        verified: false,
-        created: new Date().toISOString(),
-      });
-
-      await this.redis.setEx(otpKey, 600, otpData); // 10 minutes
-      await this.redis.setEx(rateLimitKey, 120, 'blocked'); // 2 minutes
-
-      // Log OTP for testing (REMOVE IN PRODUCTION)
-      console.log(`📧 OTP for ${dto.email}: ${otp}`);
-
-      return { message: 'OTP sent to your email' };
-    } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException('Failed to send OTP');
+  async onModuleInit() {
+    const isConnected = await this.redisService.testConnection();
+    if (!isConnected) {
+      pinoLogger.error('❌ Failed to connect to Redis Cloud!');
     }
   }
 
-  async verifyOtps(dto: VerifyOtpDto) {
+  // STEP 1: Request OTP
+  async forgotPassword(dto: EmailDto): Promise<{ message: string }> {
     try {
-      const otpKey = `otp:${dto.email}`;
-      const otpDataStr = await this.redis.get(otpKey);
+      // Check if user exists (replace with your user service)
+      // const user = await this.userService.findByEmail(dto.email);
+      const user = { email: dto.email, fullName: 'Test User' }; // Mock for now
 
-      if (!otpDataStr) {
-        throw new BadRequestException('OTP expired or invalid');
+      const successMessage = {
+        message: 'If that email exists, an OTP has been sent to your email',
+      };
+
+      if (!user) {
+        return successMessage;
       }
 
-      const otpData = JSON.parse(otpDataStr);
+      // Check rate limiting
+      await this.checkOtpRateLimit(dto.email);
+
+      // Generate 6-digit OTP
+      const otp = this.generateSecureOtp();
+      const hashedOtp = await this.hashOtp(otp);
+
+      // Redis keys
+      const otpKey = `otp:${dto.email}`;
+      const rateLimitKey = `rate_limit:${dto.email}`;
+
+      // Store OTP in Redis (10 minutes expiry)
+      const otpData = {
+        hashedOtp,
+        attempts: 0,
+        isVerified: false,
+        createdAt: new Date().toISOString(),
+        email: dto.email,
+      };
+
+      await this.redisService.setWithExpiry(otpKey, otpData, 600); // 10 minutes
+      await this.redisService.setWithExpiry(
+        rateLimitKey,
+        { lastRequest: new Date() },
+        120,
+      ); // 2 minutes
+
+      // Send OTP (replace with your mail service)
+      console.log(`📧 OTP for ${dto.email}: ${otp}`); // Remove this in production!
+      // await this.mailService.sendPasswordResetOtp(user.email, user.fullName, otp);
+
+      this.logger.log(`Password reset OTP sent to ${dto.email}`);
+      return successMessage;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error('Forgot password error:', error);
+      throw new InternalServerErrorException(
+        'Unable to process password reset request',
+      );
+    }
+  }
+
+  // STEP 2: Verify OTP
+  async verifyPasswordResetOtp(
+    dto: VerifyOtpDto,
+  ): Promise<{ message: string; canResetPassword: boolean }> {
+    try {
+      const otpKey = `otp:${dto.email}`;
+      const otpData = await this.redisService.get(otpKey);
+
+      if (!otpData) {
+        throw new BadRequestException('Invalid or expired OTP');
+      }
 
       // Check attempts
       if (otpData.attempts >= 3) {
-        await this.redis.del(otpKey);
-        throw new BadRequestException('Too many attempts. Request new OTP');
+        await this.redisService.delete(otpKey);
+        throw new BadRequestException(
+          'Too many failed attempts. Please request a new OTP',
+        );
       }
 
       // Verify OTP
-      const isValid = await this.verifyOtp(dto.otp, otpData.hashedOtp);
+      const isValidOtp = await this.verifyOtp(dto.otp, otpData.hashedOtp);
 
-      if (!isValid) {
+      if (!isValidOtp) {
         // Increment attempts
-        otpData.attempts++;
-        const ttl = await this.redis.ttl(otpKey);
-        await this.redis.setEx(otpKey, ttl, JSON.stringify(otpData));
+        otpData.attempts += 1;
+        const remainingTTL = await this.redisService.getTTL(otpKey);
+        await this.redisService.setWithExpiry(
+          otpKey,
+          otpData,
+          Math.max(remainingTTL, 60),
+        );
 
         throw new BadRequestException(
-          `Wrong OTP. ${3 - otpData.attempts} attempts left`,
+          `Invalid OTP. ${3 - otpData.attempts} attempts remaining`,
         );
       }
 
       // Mark as verified
-      otpData.verified = true;
-      const ttl = await this.redis.ttl(otpKey);
-      await this.redis.setEx(otpKey, ttl, JSON.stringify(otpData));
+      otpData.isVerified = true;
+      const remainingTTL = await this.redisService.getTTL(otpKey);
+      await this.redisService.setWithExpiry(
+        otpKey,
+        otpData,
+        Math.max(remainingTTL, 60),
+      );
 
-      return { message: 'OTP verified successfully', canReset: true };
+      return {
+        message: 'OTP verified successfully',
+        canResetPassword: true,
+      };
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException('Failed to verify OTP');
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error('OTP verification error:', error);
+      throw new InternalServerErrorException('Unable to verify OTP');
     }
   }
-  async resetPassword(dto: ResetPasswordDto) {
+
+  // STEP 3: Reset Password
+  async resetPassword(dto: ResetPasswordDto): Promise<{ message: string }> {
     try {
       const otpKey = `otp:${dto.email}`;
-      const otpDataStr = await this.redis.get(otpKey);
+      const otpData = await this.redisService.get(otpKey);
 
-      if (!otpDataStr) {
-        throw new BadRequestException('OTP expired or invalid');
+      if (!otpData || !otpData.isVerified) {
+        throw new BadRequestException('Invalid or unverified OTP');
       }
 
-      const otpData = JSON.parse(otpDataStr);
-
-      if (!otpData.verified) {
-        throw new BadRequestException('OTP not verified');
-      }
-
-      // Double-check OTP
-      const isValid = await this.verifyOtp(dto.otp, otpData.hashedOtp);
-      if (!isValid) {
+      // Verify OTP again
+      const isValidOtp = await this.verifyOtp(dto.otp, otpData.hashedOtp);
+      if (!isValidOtp) {
         throw new BadRequestException('Invalid OTP');
       }
 
-      // TODO: Update user password in database
-      console.log(`🔐 Password reset for ${dto.email}: ${dto.newPassword}`);
+      // Update password (replace with your user service)
+      // const user = await this.userService.findByEmail(dto.email);
+      // const hashedPassword = await bcrypt.hash(dto.newPassword, 12);
+      // await this.userService.updatePassword(user.id, hashedPassword);
 
-      // Clean up
-      await this.redis.del(otpKey);
+      console.log(`🔐 Password updated for ${dto.email}`); // Mock for now
 
+      // Clean up OTP
+      await this.redisService.delete(otpKey);
+
+      this.logger.log(`Password reset completed for ${dto.email}`);
       return { message: 'Password reset successfully' };
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException('Failed to reset password');
-    }
-  }
-  async getDebugInfo() {
-    const keys = await this.redis.keys('*');
-    const data = {};
-
-    for (const key of keys) {
-      const value = await this.redis.get(key);
-      try {
-        data[key] = JSON.parse(value);
-      } catch {
-        data[key] = value;
+      if (error instanceof BadRequestException) {
+        throw error;
       }
+      this.logger.error('Password reset error:', error);
+      throw new InternalServerErrorException('Unable to reset password');
     }
-
-    return { keys: keys.length, data };
   }
 }

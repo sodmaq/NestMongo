@@ -36,23 +36,5 @@ export class resendVerificationEmailDto {
 }
 
 export class EmailDto {
-  @IsEmail()
-  @IsNotEmpty()
   email: string;
-}
-
-export class VerifyOtpDto {
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-  otp: string;
-}
-
-export class ResetPasswordDto {
-  @IsEmail()
-  @IsNotEmpty()
-  @IsString()
-  email: string;
-  otp: string;
-  newPassword: string;
 }

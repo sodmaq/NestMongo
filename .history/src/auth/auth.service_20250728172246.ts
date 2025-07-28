@@ -24,7 +24,9 @@ import { JwtService } from '@nestjs/jwt';
 import { MailService } from 'src/mail/mail.service';
 import { UserDocument } from 'src/user/schema/user.schema';
 import { RedisService } from 'src/redis/redis.service';
-import * as bcrypt from 'bcrypt';
+import { pinoLogger } from 'src/middlewares/logger/pino-logger';
+import { randomInt } from 'crypto';
+import bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -33,25 +35,8 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly db: DatabaseService,
     private readonly mailService: MailService,
-    private readonly redis: RedisService,
+    private readonly redisService: RedisService,
   ) {}
-
-  private generateOtp(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  }
-
-  // Hash OTP
-  private async hashOtp(otp: string): Promise<string> {
-    return bcrypt.hash(otp, 10);
-  }
-
-  // Verify OTP
-  private async verifyOtp(
-    plainOtp: string,
-    hashedOtp: string,
-  ): Promise<boolean> {
-    return bcrypt.compare(plainOtp, hashedOtp);
-  }
 
   async signUp(dto: SignupDto) {
     const existing = await this.userService.findByEmail(dto.email);
@@ -195,133 +180,4 @@ export class AuthService {
     return { message: 'Verification email sent' };
   }
 
-  async forgotPassword(dto: EmailDto) {
-    try {
-      // Check rate limit
-      const rateLimitKey = `rate:${dto.email}`;
-      const rateLimitExists = await this.redis.exists(rateLimitKey);
-
-      if (rateLimitExists) {
-        const remaining = await this.redis.ttl(rateLimitKey);
-        throw new BadRequestException(
-          `Wait ${remaining} seconds before requesting again`,
-        );
-      }
-
-      // Generate OTP
-      const otp = this.generateOtp();
-      const hashedOtp = await this.hashOtp(otp);
-
-      // Store in Redis
-      const otpKey = `otp:${dto.email}`;
-      const otpData = JSON.stringify({
-        hashedOtp,
-        attempts: 0,
-        verified: false,
-        created: new Date().toISOString(),
-      });
-
-      await this.redis.setEx(otpKey, 600, otpData); // 10 minutes
-      await this.redis.setEx(rateLimitKey, 120, 'blocked'); // 2 minutes
-
-      // Log OTP for testing (REMOVE IN PRODUCTION)
-      console.log(`📧 OTP for ${dto.email}: ${otp}`);
-
-      return { message: 'OTP sent to your email' };
-    } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException('Failed to send OTP');
-    }
-  }
-
-  async verifyOtps(dto: VerifyOtpDto) {
-    try {
-      const otpKey = `otp:${dto.email}`;
-      const otpDataStr = await this.redis.get(otpKey);
-
-      if (!otpDataStr) {
-        throw new BadRequestException('OTP expired or invalid');
-      }
-
-      const otpData = JSON.parse(otpDataStr);
-
-      // Check attempts
-      if (otpData.attempts >= 3) {
-        await this.redis.del(otpKey);
-        throw new BadRequestException('Too many attempts. Request new OTP');
-      }
-
-      // Verify OTP
-      const isValid = await this.verifyOtp(dto.otp, otpData.hashedOtp);
-
-      if (!isValid) {
-        // Increment attempts
-        otpData.attempts++;
-        const ttl = await this.redis.ttl(otpKey);
-        await this.redis.setEx(otpKey, ttl, JSON.stringify(otpData));
-
-        throw new BadRequestException(
-          `Wrong OTP. ${3 - otpData.attempts} attempts left`,
-        );
-      }
-
-      // Mark as verified
-      otpData.verified = true;
-      const ttl = await this.redis.ttl(otpKey);
-      await this.redis.setEx(otpKey, ttl, JSON.stringify(otpData));
-
-      return { message: 'OTP verified successfully', canReset: true };
-    } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException('Failed to verify OTP');
-    }
-  }
-  async resetPassword(dto: ResetPasswordDto) {
-    try {
-      const otpKey = `otp:${dto.email}`;
-      const otpDataStr = await this.redis.get(otpKey);
-
-      if (!otpDataStr) {
-        throw new BadRequestException('OTP expired or invalid');
-      }
-
-      const otpData = JSON.parse(otpDataStr);
-
-      if (!otpData.verified) {
-        throw new BadRequestException('OTP not verified');
-      }
-
-      // Double-check OTP
-      const isValid = await this.verifyOtp(dto.otp, otpData.hashedOtp);
-      if (!isValid) {
-        throw new BadRequestException('Invalid OTP');
-      }
-
-      // TODO: Update user password in database
-      console.log(`🔐 Password reset for ${dto.email}: ${dto.newPassword}`);
-
-      // Clean up
-      await this.redis.del(otpKey);
-
-      return { message: 'Password reset successfully' };
-    } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException('Failed to reset password');
-    }
-  }
-  async getDebugInfo() {
-    const keys = await this.redis.keys('*');
-    const data = {};
-
-    for (const key of keys) {
-      const value = await this.redis.get(key);
-      try {
-        data[key] = JSON.parse(value);
-      } catch {
-        data[key] = value;
-      }
-    }
-
-    return { keys: keys.length, data };
-  }
-}
+ 

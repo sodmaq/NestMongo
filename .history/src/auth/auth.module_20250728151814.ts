@@ -6,11 +6,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { MailModule } from 'src/mail/mail.module';
 import { RedisModule } from 'src/redis/redis.module';
-import { RedisService } from 'src/redis/redis.service';
 
 @Module({
   imports: [UserModule, JwtModule.register({}), MailModule, RedisModule],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RedisModule, RedisService],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

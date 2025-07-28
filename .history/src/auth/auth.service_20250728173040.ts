@@ -309,19 +309,4 @@ export class AuthService {
       throw new BadRequestException('Failed to reset password');
     }
   }
-  async getDebugInfo() {
-    const keys = await this.redis.keys('*');
-    const data = {};
-
-    for (const key of keys) {
-      const value = await this.redis.get(key);
-      try {
-        data[key] = JSON.parse(value);
-      } catch {
-        data[key] = value;
-      }
-    }
-
-    return { keys: keys.length, data };
-  }
 }

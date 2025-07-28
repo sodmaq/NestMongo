@@ -59,12 +59,4 @@ export class AuthController {
   verifyOtp(@Body() dto: VerifyOtpDto) {
     return this.authService.verifyOtps(dto);
   }
-  @Post('reset-password')
-  resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.authService.resetPassword(dto);
-  }
-  @Get('debug')
-  getDebug() {
-    return this.authService.getDebugInfo();
-  }
 }

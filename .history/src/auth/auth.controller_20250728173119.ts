@@ -50,21 +50,4 @@ export class AuthController {
     return this.authService.handleRefreshToken(dto);
   }
 
-  @Post('forgot-password')
-  forgotPassword(@Body() dto: EmailDto) {
-    return this.authService.forgotPassword(dto);
-  }
-
-  @Post('verify-otp')
-  verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtps(dto);
-  }
-  @Post('reset-password')
-  resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.authService.resetPassword(dto);
-  }
-  @Get('debug')
-  getDebug() {
-    return this.authService.getDebugInfo();
-  }
-}
+ 

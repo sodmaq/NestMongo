@@ -13,12 +13,10 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { join } from 'path';
 import { MailModule } from './mail/mail.module';
-import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -47,7 +45,6 @@ import { RedisModule } from './redis/redis.module';
     MailModule,
     DatabaseModule,
     AuthModule,
-    RedisModule,
     UserModule,
   ],
   providers: [],

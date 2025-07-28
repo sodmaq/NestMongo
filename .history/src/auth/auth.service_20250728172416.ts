@@ -24,7 +24,6 @@ import { JwtService } from '@nestjs/jwt';
 import { MailService } from 'src/mail/mail.service';
 import { UserDocument } from 'src/user/schema/user.schema';
 import { RedisService } from 'src/redis/redis.service';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -35,23 +34,6 @@ export class AuthService {
     private readonly mailService: MailService,
     private readonly redis: RedisService,
   ) {}
-
-  private generateOtp(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  }
-
-  // Hash OTP
-  private async hashOtp(otp: string): Promise<string> {
-    return bcrypt.hash(otp, 10);
-  }
-
-  // Verify OTP
-  private async verifyOtp(
-    plainOtp: string,
-    hashedOtp: string,
-  ): Promise<boolean> {
-    return bcrypt.compare(plainOtp, hashedOtp);
-  }
 
   async signUp(dto: SignupDto) {
     const existing = await this.userService.findByEmail(dto.email);
@@ -195,17 +177,32 @@ export class AuthService {
     return { message: 'Verification email sent' };
   }
 
+
+   // Generate 6-digit OTP
+  private generateOtp(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  // Hash OTP
+  private async hashOtp(otp: string): Promise<string> {
+    return bcrypt.hash(otp, 10);
+  }
+
+  // Verify OTP
+  private async verifyOtp(plainOtp: string, hashedOtp: string): Promise<boolean> {
+    return bcrypt.compare(plainOtp, hashedOtp);
+  }
+
+  // STEP 1: Request OTP
   async forgotPassword(dto: EmailDto) {
     try {
       // Check rate limit
       const rateLimitKey = `rate:${dto.email}`;
       const rateLimitExists = await this.redis.exists(rateLimitKey);
-
+      
       if (rateLimitExists) {
         const remaining = await this.redis.ttl(rateLimitKey);
-        throw new BadRequestException(
-          `Wait ${remaining} seconds before requesting again`,
-        );
+        throw new BadRequestException(`Wait ${remaining} seconds before requesting again`);
       }
 
       // Generate OTP
@@ -218,7 +215,7 @@ export class AuthService {
         hashedOtp,
         attempts: 0,
         verified: false,
-        created: new Date().toISOString(),
+        created: new Date().toISOString()
       });
 
       await this.redis.setEx(otpKey, 600, otpData); // 10 minutes
@@ -234,7 +231,8 @@ export class AuthService {
     }
   }
 
-  async verifyOtps(dto: VerifyOtpDto) {
+  // STEP 2: Verify OTP
+  async verifyOtp(dto: VerifyOtpDto) {
     try {
       const otpKey = `otp:${dto.email}`;
       const otpDataStr = await this.redis.get(otpKey);
@@ -259,10 +257,8 @@ export class AuthService {
         otpData.attempts++;
         const ttl = await this.redis.ttl(otpKey);
         await this.redis.setEx(otpKey, ttl, JSON.stringify(otpData));
-
-        throw new BadRequestException(
-          `Wrong OTP. ${3 - otpData.attempts} attempts left`,
-        );
+        
+        throw new BadRequestException(`Wrong OTP. ${3 - otpData.attempts} attempts left`);
       }
 
       // Mark as verified
@@ -276,6 +272,8 @@ export class AuthService {
       throw new BadRequestException('Failed to verify OTP');
     }
   }
+
+  // STEP 3: Reset Password
   async resetPassword(dto: ResetPasswordDto) {
     try {
       const otpKey = `otp:${dto.email}`;
@@ -309,6 +307,8 @@ export class AuthService {
       throw new BadRequestException('Failed to reset password');
     }
   }
+
+  // Debug method
   async getDebugInfo() {
     const keys = await this.redis.keys('*');
     const data = {};
@@ -324,4 +324,5 @@ export class AuthService {
 
     return { keys: keys.length, data };
   }
-}
+
+ 

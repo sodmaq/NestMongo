@@ -47,7 +47,7 @@ import { RedisModule } from './redis/redis.module';
     MailModule,
     DatabaseModule,
     AuthModule,
-    RedisModule,
+    RedisModule
     UserModule,
   ],
   providers: [],

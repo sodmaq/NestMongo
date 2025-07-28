@@ -10,14 +10,12 @@ import {
 import { AuthService } from './auth.service';
 import { JwtGuard } from './guards';
 import {
-  EmailDto,
   LoginDto,
   RefreshTokenDto,
   resendVerificationEmailDto,
   ResetPasswordDto,
   SignupDto,
   TokenDto,
-  VerifyOtpDto,
 } from './dto';
 import { AllExceptionsFilter } from 'src/filters/all-exceptions.filter';
 
@@ -51,20 +49,23 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  forgotPassword(@Body() dto: EmailDto) {
+  async forgotPassword(@Body() dto: EmailDto) {
     return this.authService.forgotPassword(dto);
   }
 
   @Post('verify-otp')
-  verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtps(dto);
+  async verifyOtp(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyPasswordResetOtp(dto);
   }
+
   @Post('reset-password')
-  resetPassword(@Body() dto: ResetPasswordDto) {
+  async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
   }
-  @Get('debug')
-  getDebug() {
-    return this.authService.getDebugInfo();
+
+  // Debug endpoint - remove in production
+  @Get('redis-debug')
+  async getRedisDebug() {
+    return this.authService.getRedisDebugInfo();
   }
 }

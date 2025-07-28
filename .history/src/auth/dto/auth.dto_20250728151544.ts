@@ -49,9 +49,6 @@ export class VerifyOtpDto {
 }
 
 export class ResetPasswordDto {
-  @IsEmail()
-  @IsNotEmpty()
-  @IsString()
   email: string;
   otp: string;
   newPassword: string;
