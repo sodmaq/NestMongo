@@ -297,8 +297,16 @@ export class AuthService {
         throw new BadRequestException('Invalid OTP');
       }
 
+      const hashedPassword = await argon.hash(dto.newPassword);
+
       // TODO: Update user password in database
-      console.log(`🔐 Password reset for ${dto.email}: ${dto.newPassword}`);
+      const user = await this.userService.findByEmail(dto.email);
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      user.password = hashedPassword;
+      await user.save();
 
       // Clean up
       await this.redis.del(otpKey);

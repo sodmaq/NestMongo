@@ -56,6 +56,12 @@ export class ResetPasswordDto {
   @IsNotEmpty()
   @IsString()
   email: string;
+
+  @IsString()
+  @IsNotEmpty()
   otp: string;
+
+  @IsString()
+  @IsNotEmpty()
   newPassword: string;
 }
