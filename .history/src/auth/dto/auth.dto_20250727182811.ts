@@ -23,7 +23,7 @@ export class RefreshTokenDto {
   refreshToken: string;
 }
 
-export class EmailDto {
+export class VerifyEmailDto {
   @IsString()
   @IsNotEmpty()
   token: string;

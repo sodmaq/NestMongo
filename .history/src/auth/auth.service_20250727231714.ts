@@ -12,7 +12,7 @@ import {
   RefreshTokenDto,
   resendVerificationEmailDto,
   SignupDto,
-  VerifyEmailDto,
+  EmailDto,
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
@@ -44,10 +44,18 @@ export class AuthService {
 
     await this.verificationToken(user);
 
-    return user;
+    return {
+      message: 'Verification email sent',
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        isVerified: user.isVerified,
+      },
+    };
   }
 
-  async verifyEmail(dto: VerifyEmailDto) {
+  async verifyEmail(dto: EmailDto) {
     let payload: { sub: string };
 
     try {
@@ -144,7 +152,7 @@ export class AuthService {
     };
   }
 
-  async forgotPassword() {}
+  async forgotPassword(email: string) {}
 
   async verificationToken(user: UserDocument) {
     const verificationToken = await this.jwt.signAsync(

@@ -12,11 +12,10 @@ import {
   RefreshTokenDto,
   resendVerificationEmailDto,
   SignupDto,
-  VerifyEmailDto,
+  EmailDto,
 } from './dto';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
-import { access } from 'fs';
 import { MailService } from 'src/mail/mail.service';
 import { UserDocument } from 'src/user/schema/user.schema';
 
@@ -42,30 +41,20 @@ export class AuthService {
       verificationSentAt: new Date(),
     })) as UserDocument;
 
-    //create verification token
-    // const verificationToken = await this.jwt.signAsync(
-    //   { sub: user.id },
-    //   {
-    //     secret: process.env.JWT_VERIFICATION_SECRET,
-    //     expiresIn: process.env.JWT_VERIFICATION_EXPIRATION_TIME,
-    //   },
-    // );
-
-    // const verificationLink = `${process.env.CLIENT_URL}/auth/verify/${verificationToken}`;
-
-    // //send welcome email
-    // await this.mailService.sendWelcomeEmail(
-    //   user.email,
-    //   user.fullName,
-    //   verificationLink,
-    // );
-
     await this.verificationToken(user);
 
-    return user;
+    return {
+      message: 'Verification email sent',
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        isVerified: user.isVerified,
+      },
+    };
   }
 
-  async verifyEmail(dto: VerifyEmailDto) {
+  async verifyEmail(dto: EmailDto) {
     let payload: { sub: string };
 
     try {
@@ -110,6 +99,8 @@ export class AuthService {
     }
 
     await this.verificationToken(user);
+
+    return { message: 'Verification email sent' };
   }
 
   async login(dto: LoginDto) {
@@ -160,7 +151,27 @@ export class AuthService {
     };
   }
 
-  async forgotPassword() {}
+  async forgotPassword(dto: EmailDto) {
+    const user = await this.userService.findByEmail(dto.token);
+    if (!user) throw new NotFoundException('User not found');
+
+    const passwordResetToken = await this.jwt.signAsync(
+      { sub: user.id },
+      {
+        secret: process.env.JWT_PASSWORD_RESET_SECRET,
+        expiresIn: process.env.JWT_PASSWORD_RESET_EXPIRATION_TIME,
+      },
+    );
+
+    const passwordResetLink = `${process.env.CLIENT_URL}/auth/reset-password/${passwordResetToken}`;
+
+    await this.mailService.sendPasswordResetEmail(
+      user.email,
+      user.fullName,
+      passwordResetLink,
+    );
+    return { message: 'Password reset email sent' };
+  }
 
   async verificationToken(user: UserDocument) {
     const verificationToken = await this.jwt.signAsync(
@@ -178,9 +189,6 @@ export class AuthService {
       user.fullName,
       verificationLink,
     );
-
-    return {
-      message: 'Verification email sent successfully, check your inbox',
-    };
+    return { message: 'Verification email sent' };
   }
 }

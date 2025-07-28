@@ -42,27 +42,17 @@ export class AuthService {
       verificationSentAt: new Date(),
     })) as UserDocument;
 
-    //create verification token
-    // const verificationToken = await this.jwt.signAsync(
-    //   { sub: user.id },
-    //   {
-    //     secret: process.env.JWT_VERIFICATION_SECRET,
-    //     expiresIn: process.env.JWT_VERIFICATION_EXPIRATION_TIME,
-    //   },
-    // );
-
-    // const verificationLink = `${process.env.CLIENT_URL}/auth/verify/${verificationToken}`;
-
-    // //send welcome email
-    // await this.mailService.sendWelcomeEmail(
-    //   user.email,
-    //   user.fullName,
-    //   verificationLink,
-    // );
-
     await this.verificationToken(user);
 
-    return user;
+    return {
+      message: 'Verification email sent',
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        isVerified: user.isVerified,
+      },
+    };
   }
 
   async verifyEmail(dto: VerifyEmailDto) {
@@ -110,6 +100,8 @@ export class AuthService {
     }
 
     await this.verificationToken(user);
+
+    return { message: 'Verification email sent' };
   }
 
   async login(dto: LoginDto) {
@@ -160,7 +152,21 @@ export class AuthService {
     };
   }
 
-  async forgotPassword() {}
+  async forgotPassword(email: string) {
+    const user = await this.userService.findByEmail(email);
+    if (!user) throw new NotFoundException('User not found');
+    const token = await this.jwt.signAsync(
+      { sub: user.id },
+      { expiresIn: '15m' },
+    );
+    const link = `${process.env.CLIENT_URL}/auth/reset-password/${token}`;
+    await this.mailService.sendResetPasswordEmail(
+      user.email,
+      user.fullName,
+      link,
+    );
+    return { message: 'Reset password email sent' };
+  }
 
   async verificationToken(user: UserDocument) {
     const verificationToken = await this.jwt.signAsync(
@@ -178,5 +184,6 @@ export class AuthService {
       user.fullName,
       verificationLink,
     );
+    return { message: 'Verification email sent' };
   }
 }

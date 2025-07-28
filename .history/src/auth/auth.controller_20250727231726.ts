@@ -28,7 +28,7 @@ export class AuthController {
   }
 
   @Get('verify/:token')
-  async verifyEmail(@Param() dto: EmailDto) {
+  async verifyEmail(@Param() dto: VerifyEmailDto) {
     return this.authService.verifyEmail(dto);
   }
 

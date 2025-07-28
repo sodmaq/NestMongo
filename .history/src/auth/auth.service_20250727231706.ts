@@ -42,30 +42,20 @@ export class AuthService {
       verificationSentAt: new Date(),
     })) as UserDocument;
 
-    //create verification token
-    // const verificationToken = await this.jwt.signAsync(
-    //   { sub: user.id },
-    //   {
-    //     secret: process.env.JWT_VERIFICATION_SECRET,
-    //     expiresIn: process.env.JWT_VERIFICATION_EXPIRATION_TIME,
-    //   },
-    // );
-
-    // const verificationLink = `${process.env.CLIENT_URL}/auth/verify/${verificationToken}`;
-
-    // //send welcome email
-    // await this.mailService.sendWelcomeEmail(
-    //   user.email,
-    //   user.fullName,
-    //   verificationLink,
-    // );
-
     await this.verificationToken(user);
 
-    return user;
+    return {
+      message: 'Verification email sent',
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        isVerified: user.isVerified,
+      },
+    };
   }
 
-  async verifyEmail(dto: VerifyEmailDto) {
+  async verifyEmail(dto: EmailDto) {
     let payload: { sub: string };
 
     try {
@@ -162,7 +152,7 @@ export class AuthService {
     };
   }
 
-  async forgotPassword() {}
+  async forgotPassword(email: string) {}
 
   async verificationToken(user: UserDocument) {
     const verificationToken = await this.jwt.signAsync(
