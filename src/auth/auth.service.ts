@@ -291,12 +291,6 @@ export class AuthService {
         throw new BadRequestException('OTP not verified');
       }
 
-      // Double-check OTP
-      const isValid = await this.verifyOtp(dto.otp, otpData.hashedOtp);
-      if (!isValid) {
-        throw new BadRequestException('Invalid OTP');
-      }
-
       const hashedPassword = await argon.hash(dto.newPassword);
 
       // TODO: Update user password in database
