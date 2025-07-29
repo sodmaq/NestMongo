@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
@@ -60,8 +61,8 @@ export class AuthController {
     return this.authService.verifyOtps(dto);
   }
   @Post('reset-password')
-  resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.authService.resetPassword(dto);
+  resetPassword(@Query('token') token: string, @Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto, token);
   }
   @Get('debug')
   getDebug() {

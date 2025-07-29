@@ -1,0 +1,105 @@
+---
+bodyClass: bg-slate-50
+preheader: { { title } }
+---
+
+<x-main>
+  <div class="bg-slate-50 sm:px-4 font-inter">
+    <table align="center" class="m-0 mx-auto">
+      <tr>
+        <td class="w-[552px] max-w-full">
+          <x-spacer height="24px" />
+
+          <table class="w-full">
+            <tr>
+              <td
+                class="py-8 px-10 sm:p-8 bg-white border border-slate-200 rounded-2xl shadow-sm"
+              >
+                <!-- Logo -->
+                <a
+                  href="https://liozio-hub-five.vercel.app/"
+                  class="inline-block mb-8"
+                >
+                  <img
+                    src="https://res.cloudinary.com/dnldaz7oh/image/upload/v1735526223/logo_itr0eu.png"
+                    src-production="images/logo.png"
+                    width="70"
+                    alt="NECTRE Logo"
+                    class="hover:opacity-90 transition-opacity duration-200"
+                  />
+                </a>
+
+                <!-- Dynamic Title -->
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">
+                  {{ title }}
+                </h1>
+
+                <!-- Subtle accent line -->
+                <div class="w-12 h-1 bg-slate-900 rounded-full mb-6"></div>
+
+                <!-- Dynamic Message Content -->
+                <div class="text-lg text-slate-700 leading-7 mb-8">
+                  {{{ message }}}
+                </div>
+
+                <!-- Timestamp -->
+                <div
+                  class="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-6"
+                >
+                  <p class="text-sm text-slate-600 leading-6 m-0">
+                    <strong class="text-slate-700"
+                      >🕐 Notification time:</strong
+                    >
+                    {{ new Date().toLocaleString() }}
+                  </p>
+                </div>
+
+                <!-- Support section -->
+                <div class="border-t border-slate-100 pt-6 mb-6">
+                  <p class="text-sm text-slate-600 leading-6 mb-3">
+                    <strong class="text-slate-700">Need help?</strong>
+                  </p>
+                  <p class="text-sm text-slate-600 leading-6 m-0">
+                    If you have any questions or concerns about this
+                    notification, please don't hesitate to
+                    <a
+                      href="mailto:support@nectre.com"
+                      class="text-slate-900 underline hover:no-underline"
+                      >contact our support team</a
+                    >.
+                  </p>
+                </div>
+
+                <x-divider class="my-6" />
+
+                <!-- Enhanced Footer -->
+                <div class="text-left">
+                  <p class="text-base text-slate-700 leading-7 mb-1">
+                    Best regards,
+                  </p>
+                  <p class="text-base text-slate-900 font-semibold">
+                    The {{ appName }} Team
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Enhanced Legal Footer -->
+          <table class="w-full">
+            <tr>
+              <td class="py-6 px-10 sm:px-8 text-center">
+                <p class="text-xs text-slate-500 m-0 mb-3">
+                  &copy; {{ year }} {{ appName }}. All rights reserved.
+                </p>
+                <p class="text-xs text-slate-400 m-0">
+                  This is an automated notification from {{ appName }}.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</x-main>

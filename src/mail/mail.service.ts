@@ -74,25 +74,8 @@ export class MailService {
     });
   }
 
-  async sendPasswordReset(
-    email: string,
-    resetToken: string,
-    userName?: string,
-  ) {
-    return this.sendEmail({
-      to: email,
-      subject: 'Password Reset Request',
-      template: 'password-reset',
-      context: {
-        userName: userName || 'User',
-        resetUrl: `${this.configService.get('APP_URL')}/reset-password?token=${resetToken}`,
-        appName: this.configService.get('MAIL_FROM_NAME'),
-        year: new Date().getFullYear(),
-      },
-    });
-  }
-
   async sendNotification(email: string, title: string, message: string) {
+    console.log(email, title, message);
     return this.sendEmail({
       to: email,
       subject: title,

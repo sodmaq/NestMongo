@@ -25,6 +25,7 @@ import { MailService } from 'src/mail/mail.service';
 import { UserDocument } from 'src/user/schema/user.schema';
 import { RedisService } from 'src/redis/redis.service';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -255,81 +256,84 @@ export class AuthService {
 
   async verifyOtps(dto: VerifyOtpDto) {
     try {
-      const otpKey = `otp:${dto.email}`;
-      const otpDataStr = await this.redis.get(otpKey);
+      const keys = await this.redis.keys('otp:*');
+      let matchedKey: string | undefined;
+      let otpDataStr: string | null = null;
 
-      if (!otpDataStr) {
-        throw new BadRequestException('OTP expired or invalid');
+      for (const key of keys) {
+        const data = await this.redis.get(key);
+        if (!data) continue;
+
+        const parsed = JSON.parse(data);
+        const isValid = await this.verifyOtp(dto.otp, parsed.hashedOtp);
+
+        if (isValid) {
+          matchedKey = key;
+          otpDataStr = data;
+          break;
+        }
+      }
+
+      if (!otpDataStr || !matchedKey) {
+        throw new BadRequestException('Invalid or expired OTP');
       }
 
       const otpData = JSON.parse(otpDataStr);
 
-      // Check attempts
       if (otpData.attempts >= 3) {
-        await this.redis.del(otpKey);
+        await this.redis.del(matchedKey);
         throw new BadRequestException('Too many attempts. Request new OTP');
       }
 
-      // Verify OTP
-      const isValid = await this.verifyOtp(dto.otp, otpData.hashedOtp);
-
-      if (!isValid) {
-        // Increment attempts
-        otpData.attempts++;
-        const ttl = await this.redis.ttl(otpKey);
-        await this.redis.setEx(otpKey, ttl, JSON.stringify(otpData));
-
-        throw new BadRequestException(
-          `Wrong OTP. ${3 - otpData.attempts} attempts left`,
-        );
-      }
-
-      // Mark as verified
       otpData.verified = true;
-      const ttl = await this.redis.ttl(otpKey);
-      await this.redis.setEx(otpKey, ttl, JSON.stringify(otpData));
+      const ttl = await this.redis.ttl(matchedKey);
+      await this.redis.setEx(matchedKey, ttl, JSON.stringify(otpData));
 
-      return { message: 'OTP verified successfully', canReset: true };
+      // Generate reset token and store email
+      const email = matchedKey.split(':')[1];
+      const resetToken = randomUUID();
+      await this.redis.setEx(`resetToken:${resetToken}`, 600, email); // 10 mins
+
+      return { message: 'OTP verified successfully', resetToken };
     } catch (error) {
       if (error instanceof BadRequestException) throw error;
       throw new BadRequestException('Failed to verify OTP');
     }
   }
-  async resetPassword(dto: ResetPasswordDto) {
+
+  async resetPassword(dto: ResetPasswordDto, token: string) {
     try {
-      const otpKey = `otp:${dto.email}`;
-      const otpDataStr = await this.redis.get(otpKey);
-
-      if (!otpDataStr) {
-        throw new BadRequestException('OTP expired or invalid');
+      if (dto.password !== dto.confirmPassword) {
+        throw new BadRequestException('Passwords do not match');
       }
 
-      const otpData = JSON.parse(otpDataStr);
-
-      if (!otpData.verified) {
-        throw new BadRequestException('OTP not verified');
+      const email = await this.redis.get(`resetToken:${token}`);
+      if (!email) {
+        throw new BadRequestException('Invalid or expired reset token');
       }
 
-      const hashedPassword = await argon.hash(dto.newPassword);
-
-      // TODO: Update user password in database
-      const user = await this.userService.findByEmail(dto.email);
+      const user = await this.userService.findByEmail(email);
       if (!user) {
         throw new BadRequestException('User not found');
       }
 
-      user.password = hashedPassword;
+      user.password = await argon.hash(dto.password);
       await user.save();
+      await this.mailService.sendNotification(
+        email,
+        'Password Reset',
+        'your password has been reset successfully',
+      );
 
-      // Clean up
-      await this.redis.del(otpKey);
+      await this.redis.del(`resetToken:${token}`);
 
       return { message: 'Password reset successfully' };
-    } catch (error) {
-      if (error instanceof BadRequestException) throw error;
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
       throw new BadRequestException('Failed to reset password');
     }
   }
+
   async getDebugInfo() {
     const keys = await this.redis.keys('*');
     const data = {};

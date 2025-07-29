@@ -42,22 +42,17 @@ export class EmailDto {
 }
 
 export class VerifyOtpDto {
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-
   @IsString()
   @IsNotEmpty()
   otp: string;
 }
 
 export class ResetPasswordDto {
-  @IsEmail()
-  @IsNotEmpty()
   @IsString()
-  email: string;
+  @IsNotEmpty()
+  password: string;
 
   @IsString()
   @IsNotEmpty()
-  newPassword: string;
+  confirmPassword: string;
 }
