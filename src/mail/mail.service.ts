@@ -54,6 +54,26 @@ export class MailService {
     });
   }
 
+  async sendOtpEmail(
+    email: string,
+    otp: string,
+    expirationInMinutes: number,
+    name: string,
+  ) {
+    return this.sendEmail({
+      to: email,
+      subject: 'OTP Verification',
+      template: 'otp',
+      context: {
+        otp,
+        appName: this.configService.get('MAIL_FROM_NAME'),
+        year: new Date().getFullYear(),
+        expirationInMinutes,
+        name,
+      },
+    });
+  }
+
   async sendPasswordReset(
     email: string,
     resetToken: string,

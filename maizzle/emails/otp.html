@@ -1,0 +1,133 @@
+---
+bodyClass: bg-slate-50
+preheader: Your NECTRE verification code
+---
+
+<x-main>
+  <div class="bg-slate-50 sm:px-4 font-inter">
+    <table align="center" class="m-0 mx-auto">
+      <tr>
+        <td class="w-[552px] max-w-full">
+          <x-spacer height="24px" />
+
+          <table class="w-full">
+            <tr>
+              <td
+                class="py-8 px-10 sm:p-8 bg-white border border-slate-200 rounded-2xl shadow-sm"
+              >
+                <!-- Logo -->
+                <a
+                  href="https://liozio-hub-five.vercel.app/"
+                  class="inline-block mb-8"
+                >
+                  <img
+                    src="https://res.cloudinary.com/dnldaz7oh/image/upload/v1735526223/logo_itr0eu.png"
+                    src-production="images/logo.png"
+                    width="70"
+                    alt="NECTRE Logo"
+                    class="hover:opacity-90 transition-opacity duration-200"
+                  />
+                </a>
+
+                <!-- Heading with better typography -->
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">
+                  Hello {{ name }},
+                </h1>
+
+                <!-- Subtle accent line -->
+                <div class="w-12 h-1 bg-slate-900 rounded-full mb-6"></div>
+
+                <!-- Enhanced message -->
+                <p class="text-lg text-slate-700 leading-7 mb-6">
+                  Here's your verification code for
+                  <strong class="text-slate-900">NECTRE</strong>. Enter this
+                  code to complete your verification process.
+                </p>
+
+                <!-- OTP Code Display -->
+                <div class="text-center mb-8">
+                  <div
+                    class="inline-block bg-slate-900 text-white rounded-2xl px-8 py-6 mb-4"
+                  >
+                    <div class="text-4xl font-bold tracking-[0.5em] font-mono">
+                      {{ otp }}
+                    </div>
+                  </div>
+                  <p class="text-sm text-slate-600">Your verification code</p>
+                </div>
+
+                <x-spacer height="8px" />
+
+                <!-- Security note with subtle styling -->
+                <div
+                  class="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-6"
+                >
+                  <p class="text-sm text-slate-600 leading-6 m-0">
+                    <strong class="text-slate-700">🔒 Security notice:</strong>
+                    This code will expire in {{expirationInMinutes}} minutes and
+                    can only be used once. Never share this code with anyone.
+                  </p>
+                </div>
+
+                <!-- Alternative instructions -->
+                <div class="border-t border-slate-100 pt-6 mb-6">
+                  <p class="text-sm text-slate-600 leading-6 mb-3">
+                    <strong class="text-slate-700">Having trouble?</strong>
+                  </p>
+                  <ul class="text-sm text-slate-600 leading-6 pl-4 m-0">
+                    <li class="mb-2">
+                      • Make sure you're entering the code on the correct page
+                    </li>
+                    <li class="mb-2">• Check that the code hasn't expired</li>
+                    <li>• Request a new code if this one doesn't work</li>
+                  </ul>
+                </div>
+
+                <!-- Didn't request notice -->
+                <div
+                  class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6"
+                >
+                  <p class="text-sm text-amber-800 leading-6 m-0">
+                    <strong>Didn't request this code?</strong>
+                    If you didn't request this verification code, please ignore
+                    this email or
+                    <a
+                      href="mailto:support@nectre.com"
+                      class="underline hover:no-underline"
+                      >contact our support team</a
+                    >.
+                  </p>
+                </div>
+
+                <x-divider class="my-6" />
+
+                <!-- Enhanced Footer -->
+                <div class="text-left">
+                  <p class="text-base text-slate-700 leading-7 mb-1">Thanks,</p>
+                  <p class="text-base text-slate-900 font-semibold">
+                    The NECTRE Team
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Enhanced Legal Footer -->
+          <table class="w-full">
+            <tr>
+              <td class="py-6 px-10 sm:px-8 text-center">
+                <p class="text-xs text-slate-500 m-0 mb-3">
+                  &copy; {{ new Date().getFullYear() }} NECTRE. All rights
+                  reserved.
+                </p>
+                <p class="text-xs text-slate-400 m-0">
+                  This is an automated security email from NECTRE.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</x-main>

@@ -197,7 +197,13 @@ export class AuthService {
 
   async forgotPassword(dto: EmailDto) {
     try {
-      // Check rate limit
+      // 1. Check if user exists
+      const user = await this.userService.findByEmail(dto.email);
+      if (!user) {
+        throw new NotFoundException('User with this email does not exist');
+      }
+
+      // 2. Check rate limit
       const rateLimitKey = `rate:${dto.email}`;
       const rateLimitExists = await this.redis.exists(rateLimitKey);
 
@@ -208,11 +214,11 @@ export class AuthService {
         );
       }
 
-      // Generate OTP
+      // 3. Generate OTP
       const otp = this.generateOtp();
       const hashedOtp = await this.hashOtp(otp);
 
-      // Store in Redis
+      // 4. Store OTP data in Redis
       const otpKey = `otp:${dto.email}`;
       const otpData = JSON.stringify({
         hashedOtp,
@@ -221,15 +227,28 @@ export class AuthService {
         created: new Date().toISOString(),
       });
 
-      await this.redis.setEx(otpKey, 600, otpData); // 10 minutes
-      await this.redis.setEx(rateLimitKey, 120, 'blocked'); // 2 minutes
+      const expirationInSeconds = 600;
+      const expirationInMinutes = Math.floor(expirationInSeconds / 60);
 
-      // Log OTP for testing (REMOVE IN PRODUCTION)
-      console.log(`📧 OTP for ${dto.email}: ${otp}`);
+      await this.redis.setEx(otpKey, expirationInSeconds, otpData);
+      await this.redis.setEx(rateLimitKey, 120, 'blocked');
+
+      // 5. Send OTP via email
+      await this.mailService.sendOtpEmail(
+        dto.email,
+        otp,
+        expirationInMinutes,
+        user.fullName,
+      );
 
       return { message: 'OTP sent to your email' };
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
       throw new BadRequestException('Failed to send OTP');
     }
   }

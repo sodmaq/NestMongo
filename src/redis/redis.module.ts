@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from 'redis';
+import { pinoLogger } from 'src/middlewares/logger/pino-logger';
 
 export const REDIS_CLIENT = 'REDIS_CLIENT';
 
@@ -22,7 +23,7 @@ export const REDIS_CLIENT = 'REDIS_CLIENT';
         client.on('error', (err) => console.log('Redis Client Error', err));
 
         await client.connect();
-        console.log('✅ Redis connected successfully!');
+        pinoLogger.info(' Redis connected successfully!');
 
         return client;
       },
