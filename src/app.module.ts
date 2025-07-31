@@ -14,6 +14,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { join } from 'path';
 import { MailModule } from './mail/mail.module';
 import { RedisModule } from './redis/redis.module';
+import { SeederModule } from './seeders/seeder.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { RedisModule } from './redis/redis.module';
     AuthModule,
     RedisModule,
     UserModule,
+    SeederModule,
   ],
   providers: [],
 })
