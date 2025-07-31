@@ -12,19 +12,23 @@ export class SeederService {
   // User seeding methods
   async seedUsers(): Promise<void> {
     try {
-      const existingUsers = await this.userModel.countDocuments();
-
-      if (existingUsers > 0) {
-        pinoLogger.info('Users already exist, skipping user seeding');
-        return;
-      }
-
       for (const userData of userSeedData) {
-        const user = new this.userModel(userData);
-        await user.save();
+        const existingUser = await this.userModel.findOne({
+          email: userData.email,
+        });
+        if (existingUser) {
+          pinoLogger.info(
+            `User with email ${userData.email} already exists, skipping`,
+          );
+          continue;
+        }
+
+        const newUser = new this.userModel(userData);
+        await newUser.save();
+        pinoLogger.info(`User with email ${userData.email} seeded`);
       }
 
-      pinoLogger.info(`Successfully seeded ${userSeedData.length} users`);
+      pinoLogger.info(`User seeding complete`);
     } catch (error) {
       pinoLogger.error('Error seeding users:', error);
       throw error;
